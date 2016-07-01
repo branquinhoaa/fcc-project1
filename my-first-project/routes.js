@@ -1,6 +1,7 @@
 var moment = require('moment');
 
 module.exports = function(app) {
+
     app.route('/')
         .get(function(req, res) {
             res.sendFile(process.cwd() + '/index.html');
@@ -13,32 +14,29 @@ module.exports = function(app) {
     app.route('/:date')
         .get(function(req, res) {
             var date = req.params['date'];
+            var timeUTC;
+            var timeUnix;
 
             // if it is a number, convert it from Unix
             if (/^\d+$/.test(date)) {
-                var timeUTC = convertFromUnix(date);
-                res.setHeader('Content-Type', 'application/json')
-                res.send(JSON.stringify({
-                    timeUnix: date,
-                    timeUtc: timeUTC
-                }, null, 3));
-            }else if(/^\w+/.test(date)) {
+                timeUTC = convertFromUnix(date);
+                timeUnix = date;
+            }
+            else if (moment(date, ["MMMM DD, YYYY"], true).isValid()) {
                 // convert to unix
-                var timeUnix = converToUnix(date);
-                res.setHeader('Content-Type', 'application/json')
-                res.send(JSON.stringify({
-                    timeUnix: timeUnix,
-                    timeUtc: date
-                }, null, 3));
-            }
-            else {
+                timeUnix = converToUnix(date);
+                timeUTC = date;
+            } else {
                 // don't conver and return null
-                res.setHeader('Content-Type', 'application/json');
-                res.send(JSON.stringify({
-                    timeUnix: null,
-                    timeUtc: null
-                }, null, 3));
+                timeUnix = null;
+                timeUTC = null;
             }
+
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify({
+                timeUnix: timeUnix,
+                timeUtc: timeUTC
+            }, null, 3)); 
         });
 };
 
